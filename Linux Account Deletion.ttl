@@ -1,0 +1,96 @@
+connect '172.0.0.0:22 /ssh /auth=password /user=userlocal /passwd=userlocal /F=PROD.INI'
+
+
+strLogPath = 'C:\log\'
+
+
+svname='ServerLocal001'
+
+strExtension = '.log'
+
+
+getdate strDate
+strcopy strDate 1 4 strYear
+strcopy strDate 6 2 strMonth
+strcopy strDate 9 2 strDay
+gettime strNOW_TIME
+strcopy strNOW_TIME 1 2 strHour
+strcopy strNOW_TIME 4 2 strMinute
+strcopy strNOW_TIME 7 2 strSecond
+
+
+
+strLogfile = strLogPath
+strconcat strLogfile strYear
+strconcat strLogfile strMonth
+strconcat strLogfile strDay
+strconcat strLogfile strHour
+strconcat strLogfile strMinute
+strconcat strLogfile strSecond
+strconcat strLogfile '-'
+strconcat strLogfile svname
+strconcat strLogfile strExtension
+logopen strLogfile 0 0
+
+wait  '[userlocal@ServerLocal001 ~]$'
+sendln 'date'
+wait  '[userlocal@ServerLocal001 ~]$'
+sendln 'su -'
+pause 10
+sendln 'ukbn2011'
+
+
+separator = ','
+strconcat srcCsv 'target_src.csv'
+fileopen csvHandle 'target_src.csv' 0
+
+flushrecv
+
+:loop_1
+
+flushrecv
+filereadln csvHandle line_csv
+
+if result goto fclose
+
+strsplit line_csv separator
+	TARGETUSER = groupmatchstr1
+
+	SPACEGREP = ' | grep '
+	USRCONFIRM = 'cat /etc/passwd'
+	SHDELUSER = '/workhome/scripts/tools/del_user.sh'
+	SETPWD = '/workhome/home/useradmin/sh'
+	RMR = 'rm -r'
+	LSL = 'ls -l'
+	LSLTR = 'ls -ltr'
+	GREP = 'grep'
+	PIPE = '|'
+
+	
+
+;BEFORE PASSWORD EXPIRY
+pause 10
+; Check user Before Deletion
+strconcat USRCONFIRM SPACEGREP
+strconcat USRCONFIRM TARGETUSER
+sendln USRCONFIRM
+
+pause 10
+
+
+flushrecv
+goto loop_1
+
+:fclose
+fileclose csvHandle
+pause 10
+sendln 'whoami'
+mpause 2000
+sendln 'uname -n'
+
+mpause 2000
+;;sendln 'exit'
+
+mpause 2000
+;;sendln 'exit'
+
